@@ -80,29 +80,56 @@ ImmutableRootNode(T object, Set<? extends IChild<T>> children)
     public static <T> MutableChildNode<T> stringToChild(String input, String indent)
     {
 
-
         return  null;
     }
 
-    public static <T> T getValueFromString(String input)
-    {
 
-        String temp = input.substring(input.indexOf("(") + 1, input.indexOf(")"));
-        // нужно ли проверять правильность ввода?
+    // FACTORY
+
+    public abstract class AbstractReader {
+        public abstract void read(Object input);
+    }
 
 
-        int valueInt;
-        double valueDouble;
-        String valueString;
+    // Создает Node c T = int
+    public class IntReader extends AbstractReader {
+        public void read(Object input) {
+            // method body
+        }
+    }
 
-        try (Scanner scanner = new Scanner(input)) {
-            if (scanner.hasNextInt())
-                return scanner.nextInt();
+    // Создает Node c T = double
+    public class DoubleReader extends AbstractReader {
+        public void read(Object input) {
+            // method body
+        }
+    }
+
+    // Создает Node c T = string
+    public class StringReader extends AbstractReader {
+        public void read(Object input) {
+            // method body
+        }
+    }
+
+    // https://goo.gl/VY9Eeg
+    // тут код определить что в скобках лежит
+    // так же надо в Factory прописать определить тип Node
+    public class FactoryMethod {
+        public AbstractReader getReader(Object object)
+        {
+            AbstractReader reader = null;
+
+            if (object instanceof Integer)
+                reader = new IntReader();
+
             else
-                if (scanner.hasNextDouble())
-                    return scanner.nextDouble();
+                if (object instanceof Double)
+                    reader = new DoubleReader();
                 else
-                    return value;
+                    reader = new StringReader();
+
+            return reader;
         }
     }
 }
