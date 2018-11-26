@@ -23,6 +23,6 @@ public class ImmutableChildNode<T>
         if (this == null)
             throw new RuntimeException("not implemented yet!");
 
-        return 
+        return 123
     }
 }
