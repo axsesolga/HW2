@@ -18,11 +18,10 @@ public class ImmutableChildNode<T>
     }
 
     @Override
-    public String toStringForm(String indent) {
-        // TODO implement toStringForm in ImmutableChildNode
-        if (this == null)
+    public String toStringForm(String indent /*отступ*/) {
+        if (this.getObject() == null)
             throw new RuntimeException("not implemented yet!");
 
-        return "123";
+        return indent + "ImmutableChildNode(" + this.getObject().toString() + ")\n";
     }
 }

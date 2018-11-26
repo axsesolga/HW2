@@ -23,7 +23,9 @@ public class MutableChildNode<T>
 
     @Override
     public String toStringForm(String indent) {
-        // TODO implement toStringForm in MutableChildNode
-        throw new RuntimeException("not implemented yet!");
+        if (this.getObject() == null)
+            throw new RuntimeException("not implemented yet!");
+
+        return indent + "MutableChildNode(" + this.getObject().toString() + ")\n";
     }
 }

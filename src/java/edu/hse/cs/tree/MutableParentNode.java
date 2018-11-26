@@ -93,7 +93,29 @@ public class MutableParentNode<T>
 
     @Override
     public String toStringForm(String indent) {
-        // TODO implement toStringForm in MutableParentNode
-        throw new RuntimeException("not implemented yet!");
+        if (this.getObject() == null)
+            throw new RuntimeException("not implemented yet!");
+        StringBuffer output = new StringBuffer("MutableParentNode(" + this.getObject().toString() + ")\n");
+
+        // По примеру можно точно сказать что проход в глубину. Признак возвращения "наверх" - child или отсутссвие у Parent child которые не были выведены
+
+        // Если вывели потомка выкидываем его из outputCollection
+        Set<? extends IChild<T>> outputCollection = this.getChildren();
+
+        while (!outputCollection.isEmpty()) // пока есть что выводить
+        {
+            IChild<T> elem = outputCollection.iterator().next(); // родитель и ребенок реализуют IChild
+            output.append(elem.toString());
+
+            // добавление в output
+            if (elem instanceof ImmutableChildNode)
+                output.append(((ImmutableChildNode<T>) elem).toStringForm(indent + "\t"));
+
+            if (elem instanceof ImmutableParentNode)
+                output.append(((ImmutableParentNode<T>) elem).toStringForm(indent + "\t"));
+
+            outputCollection.remove(elem);
+        }
+        return output.toString();
     }
 }

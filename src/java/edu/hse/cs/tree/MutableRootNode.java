@@ -88,7 +88,27 @@ public class MutableRootNode<T>
 
     @Override
     public String toStringForm(String indent) {
-        // TODO implement toStringForm in MutableRootNode
-        throw new RuntimeException("not implemented yet!");
+        StringBuffer output = new StringBuffer("MutableRootNode(" + this.getObject().toString() + ")\n" );
+
+        // По примеру можно точно сказать что проход в глубину. Признак возвращения "наверх" - child или отсутссвие у Parent child которые не были выведены
+
+        // Если вывели потомка выкидываем его из outputCollection
+        Set<? extends IChild<T>> outputCollection = this.getChildren();
+
+        while (!outputCollection.isEmpty()) // пока есть что выводить
+        {
+            IChild<T> elem = outputCollection.iterator().next(); // родитель и ребенок реализуют IChild
+            output.append(elem.toString());
+
+            // добавление в output
+            if (elem instanceof ImmutableChildNode)
+                output.append(((ImmutableChildNode<T>) elem).toStringForm("\t"));
+
+            if (elem instanceof ImmutableParentNode)
+                output.append(((ImmutableParentNode<T>) elem).toStringForm("\t"));
+
+            outputCollection.remove(elem);
+        }
+        return output.toString();
     }
 }
