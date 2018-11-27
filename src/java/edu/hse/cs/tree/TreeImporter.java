@@ -20,12 +20,19 @@ package edu.hse.cs.tree;
 // Root ведь обязательно без \t?
 // можно ли подгрузить Apache Commons?
 
+import java.text.ParseException;
 import java.util.Arrays;
 import java.util.Scanner;
 import java.util.Set;
 
 public class TreeImporter  // Вопрос - согласно условию "cтрока, 32-битное знаковое целочисленное число, 64-битное число с плавающей точкой". Только 1 или любой тип?
 {
+    // возвращает число табуляций
+    private static int indent(String input)
+    {
+        return input.length() - input.replace("   ", "").length();
+    }
+
     public static <T> MutableRootNode<T> importMutableTree(String input) { // возвращает корень дерева
         if (input.isEmpty())
             throw new RuntimeException("Empty input!"); // тоже вопрос, нужно ли самим кидать ошибки? и обрабаоывать ли их
@@ -34,35 +41,31 @@ public class TreeImporter  // Вопрос - согласно условию "c�
 
         String[] listOfStrings = input.split("\n");
         // обработаем первую строку с едиснтвенным root
-        if (!listOfStrings[0].contains("Root"))
-            throw new RuntimeException("Wrong data, first Node isn't a Root");
-
-        Set<? extends IChild<T>> children;
-        MutableRootNode<T> root = new MutableRootNode<>(listOfStrings[0])
-/*
-ImmutableChildNode(T object, IParent<T> parent)
-ImmutableParentNode(T object, IParent<T> parent, Set<? extends IChild<T>> children)
-ImmutableRootNode(T object, Set<? extends IChild<T>> children)
- */
 
 
+        AbstractTreeNode absRoot = Factory.getParsedNode(listOfStrings[0]);
+        if (!(absRoot instanceof MutableRootNode))
+            throw new RuntimeException("wring root");
+        MutableRootNode root = (MutableRootNode)absRoot;
 
-        for (int i = 1; i < n; ++i)
+
+        // добавим детей в Root  и вызовем заполнение этих детей
+        for (int i = 1; i < listOfStrings.length; ++i)
         {
-            String line = listOfStrings[i];
-            if (StringUtils.countMatches("\t", line) == 1)  // если это первый уровень ветвей
+            // если отступ равен 1, т.е. если это дети Root'a
+            if (indent(listOfStrings[i]) == 1) // добавим детей в RootNode
             {
-                if (line.contains("Child"))
-                {
+                AbstractTreeNode currentNode = Factory.getParsedNode(listOfStrings[i]);
 
-                }
-                if (line.contains("Parent"))
+                if (currentNode instanceof MutableParentNode)
                 {
-
+                    FillParent((MutableParentNode)currentNode, 1, listOfStrings, i);
                 }
+
+                root.addChild(currentNode); // в инициализации addChild нужно учесть что возможно в несуществующий сет добаляется
+                // если это ребенок Root'a- достаточно просто добавить root.addChild
             }
         }
-
 
 
         return null; // temporary stub
@@ -70,66 +73,66 @@ ImmutableRootNode(T object, Set<? extends IChild<T>> children)
 
     // Вызываем чтение так же рекурсивно
     //
-    public static <T> MutableParentNode<T> stringToParent(String input, String indent)
+    public static <T> void FillParent(MutableParentNode currentNode, int indent, String[] data, int position)
     {
 
+        int i = position;
+        indent++; // положение детей этого Parent находится в indent++
+        while (indent(data[i]) >= indent && i < data.length) // добавим детей в RootNode
+            {
+                if (indent(data[i]) == indent) {
+                    AbstractTreeNode child = Factory.getParsedNode(data[i]);
 
-        return  null;
+
+                    if (child instanceof MutableParentNode) {
+                        FillParent((MutableParentNode)child, indent, data, i);
+                    }
+
+                    currentNode.addChild(child);
+
+                    // если это ребенок Root'a- достаточно просто добавить root.addChild
+                }
+                i++;
+            }
+
+
     }
 
-    public static <T> MutableChildNode<T> stringToChild(String input, String indent)
-    {
+}
 
-        return  null;
+class Factory
+{
+    // возвращает значение - что находится между  "(" и ")"
+    private static String getValue(String input) {
+        return input.substring(input.indexOf("(") + 1, input.indexOf(")"));
     }
 
 
     // FACTORY
+    public static AbstractTreeNode getParsedNode(String input)
+    {
 
-    public abstract class AbstractReader {
-        public abstract void read(Object input);
-    }
-
-
-    // Создает Node c T = int
-    public class IntReader extends AbstractReader {
-        public void read(Object input) {
-            // method body
-        }
-    }
-
-    // Создает Node c T = double
-    public class DoubleReader extends AbstractReader {
-        public void read(Object input) {
-            // method body
-        }
-    }
-
-    // Создает Node c T = string
-    public class StringReader extends AbstractReader {
-        public void read(Object input) {
-            // method body
-        }
-    }
-
-    // https://goo.gl/VY9Eeg
-    // тут код определить что в скобках лежит
-    // так же надо в Factory прописать определить тип Node
-    public class FactoryMethod {
-        public AbstractReader getReader(Object object)
-        {
-            AbstractReader reader = null;
-
-            if (object instanceof Integer)
-                reader = new IntReader();
-
+        Object parsedValue;
+        String value = getValue(input);
+        try (Scanner scanner = new Scanner(value)) {
+            if (scanner.hasNextInt() && String.valueOf(scanner.nextInt()).equals(value)) // если строка - int число и вся строка является этим числом (на случай если что-то врод 1234abc)
+                parsedValue = scanner.nextInt();
+            else if (scanner.hasNextDouble() && String.valueOf(scanner.nextDouble()).equals(value))  // если строка - double число и вся строка является этим числом
+                parsedValue = scanner.nextDouble();
             else
-                if (object instanceof Double)
-                    reader = new DoubleReader();
-                else
-                    reader = new StringReader();
-
-            return reader;
+                parsedValue = value; // если строка - текст
         }
+
+            // need to check that parsedValue has correct type
+
+            if (input.contains("Root"))
+                return new MutableRootNode(parsedValue);
+            if (input.contains("Parent"))
+                return new MutableParentNode(parsedValue);
+            if (input.contains("Child"))
+                return new MutableChildNode(parsedValue);
+            return null;
+
     }
 }
+
