@@ -56,7 +56,7 @@ public class ImmutableParentNode<T>
     public String toStringForm(String indent /*отступ*/) { // Вопрос - обязательно ли в порядке parent-parent-child?
         if (this.getObject() == null)
             throw new RuntimeException("not implemented yet!");
-        StringBuffer output = new StringBuffer("MutableParentNode(" + this.getObject().toString() + ")\n" );
+        StringBuffer output = new StringBuffer(indent + "MutableParentNode(" + this.getObject().toString() + ")\n" );
 
         // По примеру можно точно сказать что проход в глубину. Признак возвращения "наверх" - child или отсутссвие у Parent child которые не были выведены
 
@@ -70,10 +70,10 @@ public class ImmutableParentNode<T>
 
             // добавление в output
             if (elem instanceof ImmutableChildNode)
-                output.append(((ImmutableChildNode<T>) elem).toStringForm(indent + "\t"));
+                output.append(((ImmutableChildNode<T>) elem).toStringForm(indent + INDENT));
 
             if (elem instanceof ImmutableParentNode)
-                output.append(((ImmutableParentNode<T>) elem).toStringForm(indent + "\t"));
+                output.append(((ImmutableParentNode<T>) elem).toStringForm(indent + INDENT));
 
             outputCollection.remove(elem);
         }

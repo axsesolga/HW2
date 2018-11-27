@@ -23,13 +23,11 @@ public class MutableRootNode<T>
 
     @Override
     public final Set<? extends IChild<T>> getChildren() {
-        // tmp stub TODO: implement me...
-        throw new RuntimeException("not implemented yet!");
+        return children;
     }
 
     public final void setChildren(Set<? extends IChild<T>> newValue) {
-        //TODO: implement me...
-        throw new RuntimeException("not implemented yet!");
+        children = newValue;
     }
 
     @Override
@@ -62,7 +60,7 @@ public class MutableRootNode<T>
     }
 
     /**
-     * Removes this node descendants having the specified value.
+     * Removes this node descendants having the specified value.S
      *
      * @param childValue - the value of the descendant of this node that must be removed.
      * @return true if at least one descendant was removed, false - otherwise.

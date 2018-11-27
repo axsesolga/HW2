@@ -16,7 +16,6 @@ package edu.hse.cs.tree;
      */
 
 
-// а как же импорт MutableRootNode?
 // Root ведь обязательно без \t?
 // можно ли подгрузить Apache Commons?
 
@@ -25,7 +24,7 @@ import java.util.Arrays;
 import java.util.Scanner;
 import java.util.Set;
 
-public class TreeImporter  // Вопрос - согласно условию "cтрока, 32-битное знаковое целочисленное число, 64-битное число с плавающей точкой". Только 1 или любой тип?
+public class TreeImporter
 {
     // возвращает число табуляций
     private static int indent(String input)
@@ -68,14 +67,13 @@ public class TreeImporter  // Вопрос - согласно условию "c�
         }
 
 
-        return null; // temporary stub
+        return root; // temporary stub
     }
 
     // Вызываем чтение так же рекурсивно
     //
     public static <T> void FillParent(MutableParentNode currentNode, int indent, String[] data, int position)
     {
-
         int i = position;
         indent++; // положение детей этого Parent находится в indent++
         while (indent(data[i]) >= indent && i < data.length) // добавим детей в RootNode
@@ -94,8 +92,6 @@ public class TreeImporter  // Вопрос - согласно условию "c�
                 }
                 i++;
             }
-
-
     }
 
 }
@@ -106,7 +102,6 @@ class Factory
     private static String getValue(String input) {
         return input.substring(input.indexOf("(") + 1, input.indexOf(")"));
     }
-
 
     // FACTORY
     public static AbstractTreeNode getParsedNode(String input)
@@ -133,6 +128,10 @@ class Factory
                 return new MutableChildNode(parsedValue);
             return null;
 
+    }
+
+    public static void main(String[] args) {
+        System.out.println("Hello World!");
     }
 }
 

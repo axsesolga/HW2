@@ -76,10 +76,10 @@ public class ImmutableRootNode<T>
 
             // добавление в output
             if (elem instanceof ImmutableChildNode)
-                output.append(((ImmutableChildNode<T>) elem).toStringForm("\t"));
+                output.append(((ImmutableChildNode<T>) elem).toStringForm(INDENT));
 
             if (elem instanceof ImmutableParentNode)
-                output.append(((ImmutableParentNode<T>) elem).toStringForm("\t"));
+                output.append(((ImmutableParentNode<T>) elem).toStringForm(INDENT));
 
             outputCollection.remove(elem);
         }

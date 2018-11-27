@@ -13,6 +13,9 @@ public class TreeTest {
     public void testGetChildren(){
         MutableRootNode<String> root = populateTree();
         Assertions.assertEquals(root.getChildren().size(), 3);
+
+        System.out.println(root.toStringForm(""));
+
     }
 
 
@@ -46,9 +49,7 @@ public class TreeTest {
         Set<IChild<String>> parent1Children = new HashSet<>(1);
         parent1Children.add(child10);
         parent1.setChildren(parent1Children);
-        child10.setParent(parent1);
-
+        child10.setParent(parent1); /// тут проблема. Получается что в setParent не нужно родителю "докидывать" детей?
         return root;
     }
-
 }

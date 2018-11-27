@@ -14,7 +14,7 @@ public class MutableParentNode<T>
 
     public MutableParentNode(T object) {
         super(object);
-        throw new RuntimeException("not implemented yet!");
+        //throw new RuntimeException("not implemented yet!");
     }
 
     // IChild implementation:
@@ -34,7 +34,7 @@ public class MutableParentNode<T>
     }
 
     public void setChildren(Set<? extends IChild<T>> newValue) {
-        throw new RuntimeException("not implemented yet!");
+        children = newValue;
     }
 
     @Override

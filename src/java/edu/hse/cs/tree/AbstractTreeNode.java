@@ -29,6 +29,7 @@ public abstract class AbstractTreeNode<T>
         return object;
     }
 
+
     /**
      * Represents this node in a string form.
      * For nodes with children s string representation must look like a tree with indents corresponding to a node level.
