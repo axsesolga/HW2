@@ -58,14 +58,9 @@ public class TreeImporter
                 if (currentNode instanceof MutableParentNode)
                 {
                     FillParent((MutableParentNode)currentNode, 1, listOfStrings, i);
-                    ((MutableParentNode) currentNode).setParent(root);
-                }
-                else
-                {
-                    ((MutableChildNode) currentNode).setParent(root);
                 }
 
-                root.addChild(currentNode); // в инициализации addChild нужно учесть что возможно в несуществующий сет добаляется
+                root.addChild(currentNode); // в инициализации addChild нужно учесть что возможно в несуществующий сет добаляется и нужно ребенку поменять parent
                 // если это ребенок Root'a- достаточно просто добавить root.addChild
             }
         }
@@ -87,12 +82,7 @@ public class TreeImporter
 
 
                     if (child instanceof MutableParentNode) {
-                        FillParent((MutableParentNode)child, indent, data, i);
-                        ((MutableParentNode) child).setParent(currentNode);
-                    }
-                    else
-                    {
-                        ((MutableChildNode) child).setParent(currentNode);
+                        FillParent((MutableParentNode) child, indent, data, i);
                     }
 
                     currentNode.addChild(child);
