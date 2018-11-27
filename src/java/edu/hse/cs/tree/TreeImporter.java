@@ -55,10 +55,14 @@ public class TreeImporter
             if (indent(listOfStrings[i]) == 1) // добавим детей в RootNode
             {
                 AbstractTreeNode currentNode = Factory.getParsedNode(listOfStrings[i]);
-
                 if (currentNode instanceof MutableParentNode)
                 {
                     FillParent((MutableParentNode)currentNode, 1, listOfStrings, i);
+                    ((MutableParentNode) currentNode).setParent(root);
+                }
+                else
+                {
+                    ((MutableChildNode) currentNode).setParent(root);
                 }
 
                 root.addChild(currentNode); // в инициализации addChild нужно учесть что возможно в несуществующий сет добаляется
@@ -84,9 +88,15 @@ public class TreeImporter
 
                     if (child instanceof MutableParentNode) {
                         FillParent((MutableParentNode)child, indent, data, i);
+                        ((MutableParentNode) child).setParent(currentNode);
+                    }
+                    else
+                    {
+                        ((MutableChildNode) child).setParent(currentNode);
                     }
 
                     currentNode.addChild(child);
+
 
                     // если это ребенок Root'a- достаточно просто добавить root.addChild
                 }
