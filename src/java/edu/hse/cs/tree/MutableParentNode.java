@@ -1,6 +1,8 @@
 package edu.hse.cs.tree;
 
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
 
 public class MutableParentNode<T>
@@ -14,7 +16,8 @@ public class MutableParentNode<T>
 
     public MutableParentNode(T object) {
         super(object);
-        //throw new RuntimeException("not implemented yet!");
+        children = new HashSet<>();
+        parent = null;
     }
 
     // IChild implementation:
@@ -23,18 +26,41 @@ public class MutableParentNode<T>
         return parent;
     }
 
+    // тут нужна проверка что если родитель был, то у прошлого родителя удаляем ребенка
     public void setParent(IParent<T> newValue) {
-        this.parent = newValue;
+        if (this.parent != null)
+        {
+            IParent par = this.parent;
+            if (par instanceof MutableParentNode)
+                ((MutableParentNode) par).removeChildByValue(this.getObject());
+            else
+                ((MutableRootNode) par).removeChildByValue(this.getObject());
+        }
+
+            this.parent = newValue;
+
     }
 
     // IParent implementation:
+
+    // Поскльку все изменения дерева доступны через функции, то в данном случае я думаю разумно передавать копию объекта, иначе будет меняться внутрянняя колецкция без контроля ошибок
     @Override
     public Set<? extends IChild<T>> getChildren() {
-        throw new RuntimeException("not implemented yet!");
+        Set<? extends IChild<T>> newChildren = new HashSet<>(children);
+        return newChildren;
     }
 
     public void setChildren(Set<? extends IChild<T>> newValue) {
         children = newValue;
+        Iterator<? extends IChild<T>> i = children.iterator();
+        while (i.hasNext())
+        {
+            IChild next = i.next();
+            if (next instanceof MutableParentNode)
+                ((MutableParentNode) next).setParent(this);
+            else
+                ((MutableChildNode) next).setParent(this);
+        }
     }
 
     @Override
@@ -61,9 +87,22 @@ public class MutableParentNode<T>
      * @param childValue - the value of the child to be removed
      * @return - the child removed, or null if the child with the given value was not found.
      */
-    AbstractTreeNode<T> removeChildByValue(T childValue) {
-        // TODO implement removeChildByValue in MutableParentNode
-        throw new RuntimeException("not implemented yet!");
+    AbstractTreeNode<T> removeChildByValue(T childValue)
+    {
+        Iterator<? extends IChild<T>> it = children.iterator();
+
+        while (it.hasNext())
+        {
+            IChild<T> child  = it.next();
+            if (((MutableChildNode<T>) child).getObject().equals(childValue))
+            {
+                children.remove(child);
+                ((MutableChildNode<T>) child).setParent(null);
+                return (AbstractTreeNode<T>) child;
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -87,8 +126,25 @@ public class MutableParentNode<T>
      * @param node node to be added
      */
     void addChild(AbstractTreeNode<T> node) {
-        // TODO implement addChild in MutableParentNode
-        throw new RuntimeException("not implemented yet!");
+        if (node instanceof  ImmutableChildNode || node instanceof ImmutableParentNode || node instanceof  ImmutableRootNode)
+            throw new  IllegalStateException("Cant add immutable to mutable tree");
+
+        Set<IChild<T>> set = new HashSet<>(this.children);
+        if (node instanceof MutableRootNode)
+        {
+            MutableParentNode parentNode = new MutableParentNode(node.getObject());
+            parentNode.setChildren(((MutableRootNode) node).getChildren());
+
+            set.add(parentNode);
+        }
+        else
+        {
+            if (node instanceof MutableParentNode)
+                set.add((MutableParentNode) node);
+            else
+                set.add((MutableChildNode) node);
+        }
+        children = set;
     }
 
     @Override
@@ -105,14 +161,13 @@ public class MutableParentNode<T>
         while (!outputCollection.isEmpty()) // пока есть что выводить
         {
             IChild<T> elem = outputCollection.iterator().next(); // родитель и ребенок реализуют IChild
-            output.append(elem.toString());
 
             // добавление в output
-            if (elem instanceof ImmutableChildNode)
-                output.append(((ImmutableChildNode<T>) elem).toStringForm(indent+INDENT));
+            if (elem instanceof MutableChildNode)
+                output.append(((MutableChildNode<T>) elem).toStringForm(indent+INDENT));
 
-            if (elem instanceof ImmutableParentNode)
-                output.append(((ImmutableParentNode<T>) elem).toStringForm(indent+INDENT));
+            if (elem instanceof MutableParentNode)
+                output.append(((MutableParentNode<T>) elem).toStringForm(indent+INDENT));
 
             outputCollection.remove(elem);
         }

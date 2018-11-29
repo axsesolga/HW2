@@ -19,8 +19,12 @@ package edu.hse.cs.tree;
 // Root ведь обязательно без \t?
 // можно ли подгрузить Apache Commons?
 
+
+import com.sun.javaws.exceptions.InvalidArgumentException;
+
 import java.text.ParseException;
 import java.util.Arrays;
+import java.util.InputMismatchException;
 import java.util.Scanner;
 import java.util.Set;
 
@@ -29,7 +33,7 @@ public class TreeImporter
     // возвращает число табуляций
     private static int indent(String input)
     {
-        return input.length() - input.replace("   ", "").length();
+        return input.length() - input.replace(" ", "").length();
     }
 
     public static <T> MutableRootNode<T> importMutableTree(String input) { // возвращает корень дерева
@@ -52,13 +56,13 @@ public class TreeImporter
         for (int i = 1; i < listOfStrings.length; ++i)
         {
             // если отступ равен 1, т.е. если это дети Root'a
-            if (indent(listOfStrings[i]) == 1) // добавим детей в RootNode
+            if (indent(listOfStrings[i]) == 3) // добавим детей в RootNode
             {
                 AbstractTreeNode currentNode = Factory.getParsedNode(listOfStrings[i]);
 
                 if (currentNode instanceof MutableParentNode)
                 {
-                    FillParent((MutableParentNode)currentNode, 1, listOfStrings, i);
+                    FillParent((MutableParentNode)currentNode, 3, listOfStrings, i);
                 }
 
                 root.addChild(currentNode); // в инициализации addChild нужно учесть что возможно в несуществующий сет добаляется
@@ -72,26 +76,33 @@ public class TreeImporter
 
     // Вызываем чтение так же рекурсивно
     //
-    public static <T> void FillParent(MutableParentNode currentNode, int indent, String[] data, int position)
+    public static <T> void FillParent(MutableParentNode<T> currentNode, int indent, String[] data, int position)
     {
-        int i = position;
-        indent++; // положение детей этого Parent находится в indent++
-        while (indent(data[i]) >= indent && i < data.length) // добавим детей в RootNode
-            {
-                if (indent(data[i]) == indent) {
-                    AbstractTreeNode child = Factory.getParsedNode(data[i]);
+        int i = position+1;
+        indent+=3;
+        if (indent(data[i]) != indent) // если следующий элемент находится в неверном числе отступов, то игнорим его
+            throw  new InputMismatchException("Wrong data was given");
+         // положение детей этого Parent находится в indent+3
+        while (indent(data[i]) == indent && i < data.length)
+        {
+            if (indent(data[i]) == indent) {
+                AbstractTreeNode<T> child = Factory.getParsedNode(data[i]);
 
 
-                    if (child instanceof MutableParentNode) {
-                        FillParent((MutableParentNode)child, indent, data, i);
-                    }
-
-                    currentNode.addChild(child);
-
-                    // если это ребенок Root'a- достаточно просто добавить root.addChild
+                if (child instanceof MutableParentNode) {
+                    FillParent((MutableParentNode)child, indent, data, i);
                 }
-                i++;
+
+                currentNode.addChild(child);
+
+                // если это ребенок Root'a- достаточно просто добавить root.addChild
             }
+            if (i + 1 == data.length)
+                return;;
+            i++;
+            if (indent(data[i]) != indent)
+                return;
+        }
     }
 
 }
@@ -130,8 +141,5 @@ class Factory
 
     }
 
-    public static void main(String[] args) {
-        System.out.println("Hello World!");
-    }
 }
 

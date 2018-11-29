@@ -1,7 +1,6 @@
 package edu.hse.cs.tree;
 
-import java.util.Collection;
-import java.util.Set;
+import java.util.*;
 
 public class MutableRootNode<T>
         extends
@@ -13,6 +12,7 @@ public class MutableRootNode<T>
 
     public MutableRootNode(T object) {
         super(object);
+        children = new HashSet<>();
     }
 
     public MutableRootNode(ImmutableRootNode<T> source) {
@@ -22,12 +22,23 @@ public class MutableRootNode<T>
     }
 
     @Override
-    public final Set<? extends IChild<T>> getChildren() {
-        return children;
+    public final Set<? extends IChild<T>> getChildren() { // неоьходимо возвращать копию, иначе будет меняться внутренняя коллекция
+        Set<? extends IChild<T>> newChildren = new HashSet<>(children);
+        return newChildren;
     }
 
+    // Очень спорный вопрос. TO DO не стоит, но нужно всем этим детям задать родителя...
     public final void setChildren(Set<? extends IChild<T>> newValue) {
         children = newValue;
+        Iterator<? extends IChild<T>> i = children.iterator();
+        while (i.hasNext())
+        {
+            IChild next = i.next();
+            if (next instanceof MutableParentNode)
+                ((MutableParentNode) next).setParent(this);
+            else
+                ((MutableChildNode) next).setParent(this);
+        }
     }
 
     @Override
@@ -55,8 +66,20 @@ public class MutableRootNode<T>
      * @return - the child removed, or null if the child with the given value was not found.
      */
     AbstractTreeNode<T> removeChildByValue(T childValue) {
-        // TODO implement removeChildByValue in MutableRootNode
-        throw new RuntimeException("not implemented yet!");
+        Iterator<? extends IChild<T>> it = children.iterator();
+
+        while (it.hasNext())
+        {
+            IChild<T> child  = it.next();
+            if (((MutableChildNode<T>) child).getObject().equals(childValue))
+            {
+                children.remove(child);
+                ((MutableChildNode<T>) child).setParent(null);
+                return (AbstractTreeNode<T>) child;
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -80,8 +103,27 @@ public class MutableRootNode<T>
      * @param node node to be added
      */
     void addChild(AbstractTreeNode<T> node) {
-        // TODO implement addChild in MutableRootNode
-        throw new RuntimeException("not implemented yet!");
+
+        if (node instanceof  ImmutableChildNode || node instanceof ImmutableParentNode || node instanceof  ImmutableRootNode)
+            throw new  IllegalStateException("Cant add immutable to mutable tree");
+
+        Set<IChild<T>> set = new HashSet<>(this.children);
+        if (node instanceof MutableRootNode)
+        {
+            MutableParentNode parentNode = new MutableParentNode(node.getObject());
+            parentNode.setChildren(((MutableRootNode) node).getChildren());
+
+            set.add(parentNode);
+        }
+        else
+        {
+            if (node instanceof MutableParentNode)
+                set.add((MutableParentNode) node);
+            else
+                set.add((MutableChildNode) node);
+        }
+        children = set;
+
     }
 
     @Override
@@ -96,14 +138,13 @@ public class MutableRootNode<T>
         while (!outputCollection.isEmpty()) // пока есть что выводить
         {
             IChild<T> elem = outputCollection.iterator().next(); // родитель и ребенок реализуют IChild
-            output.append(elem.toString());
 
             // добавление в output
-            if (elem instanceof ImmutableChildNode)
-                output.append(((ImmutableChildNode<T>) elem).toStringForm(INDENT));
+            if (elem instanceof MutableChildNode)
+                output.append(((MutableChildNode<T>) elem).toStringForm(INDENT));
 
-            if (elem instanceof ImmutableParentNode)
-                output.append(((ImmutableParentNode<T>) elem).toStringForm(INDENT));
+            if (elem instanceof MutableParentNode)
+                output.append(((MutableParentNode<T>) elem).toStringForm(INDENT));
 
             outputCollection.remove(elem);
         }

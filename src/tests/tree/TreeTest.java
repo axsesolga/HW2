@@ -12,9 +12,14 @@ public class TreeTest {
     @Test
     public void testGetChildren(){
         MutableRootNode<String> root = populateTree();
-        Assertions.assertEquals(root.getChildren().size(), 3);
 
         System.out.println(root.toStringForm(""));
+
+        String tree = root.toStringForm("");
+
+        MutableRootNode<String> root2 = TreeImporter.importMutableTree(tree);
+
+        System.out.println(root2.toStringForm(""));
 
     }
 
@@ -35,21 +40,17 @@ public class TreeTest {
         rootChildren.add(parent1);
         rootChildren.add(child0);
         root.setChildren(rootChildren);
-        parent0.setParent(root);
-        parent1.setParent(root);
-        child0.setParent(root);
 
-        Set<IChild<String>> parent0Children = new HashSet<>(2);
-        parent0Children.add(child00);
-        parent0Children.add(child01);
-        parent1.setChildren(parent0Children);
-        child00.setParent(parent0);
-        child01.setParent(parent0);
+        Set<IChild<String>> parent0children = new HashSet<>(3);
+        parent0children.add(child00);
+        parent0children.add(child01);
+        parent0children.add(child10);
+        parent0.setChildren(parent0children);
 
-        Set<IChild<String>> parent1Children = new HashSet<>(1);
-        parent1Children.add(child10);
-        parent1.setChildren(parent1Children);
-        child10.setParent(parent1); /// тут проблема. Получается что в setParent не нужно родителю "докидывать" детей?
+        Set<IChild<String>> parent1children = new HashSet<>(3);
+        parent1children.add(child10);
+        parent1.setChildren(parent1children);
+
         return root;
     }
 }
