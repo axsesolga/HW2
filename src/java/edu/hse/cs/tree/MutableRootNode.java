@@ -12,7 +12,7 @@ public class MutableRootNode<T>
 
     public MutableRootNode(T object) {
         super(object);
-        children = new HashSet<>();
+        children = new LinkedHashSet<>();
     }
 
     public MutableRootNode(ImmutableRootNode<T> source) {
@@ -21,42 +21,65 @@ public class MutableRootNode<T>
         this.children = null; // tmp stub
     }
 
+
+    // Поскльку все изменения дерева доступны через функции, то в данном случае я нужно передавать копию объекта, иначе будет меняться внутрянняя колецкция без контроля ошибок
     @Override
-    public final Set<? extends IChild<T>> getChildren() { // неоьходимо возвращать копию, иначе будет меняться внутренняя коллекция
-        Set<? extends IChild<T>> newChildren = new HashSet<>(children);
+    public final Set<? extends IChild<T>> getChildren() {
+        Set<? extends IChild<T>> newChildren = new LinkedHashSet<>(children);
         return newChildren;
     }
 
-    // Очень спорный вопрос. TO DO не стоит, но нужно всем этим детям задать родителя...
+    // Не уверена. TO DO не стоит, но нужно всем этим детям задать родителя...
     public final void setChildren(Set<? extends IChild<T>> newValue) {
         children = newValue;
-        Iterator<? extends IChild<T>> i = children.iterator();
-        while (i.hasNext())
+        for (IChild child : getChildren())
         {
-            IChild next = i.next();
-            if (next instanceof MutableParentNode)
-                ((MutableParentNode) next).setParent(this);
+            if (child instanceof MutableParentNode)
+                ((MutableParentNode) child).setParent(this);
             else
-                ((MutableChildNode) next).setParent(this);
+                ((MutableChildNode) child).setParent(this);
         }
     }
 
     @Override
+    // тут включаются и Parent-ы и Child-ы
+    // аналогично getChildren, передаем копию иначе потеря инкапсуляции
     public Collection<? extends IChild<T>> getAllDescendants() {
-        // TODO implement getAllDescendants in MutableRootNode
-        throw new RuntimeException("not implemented yet!");
+        Set<IChild<T>> output = new LinkedHashSet<>(this.children);
+
+        for (Iterator<? extends IChild<T>> it = this.children.iterator(); it.hasNext(); )
+        {
+            IChild<T> temp = it.next();
+            if (temp instanceof MutableParentNode)
+            {
+                output.add(temp);
+                output.addAll(((MutableParentNode<T>) temp).getAllDescendants());
+            }
+            else
+                output.add(temp);
+        }
+        return  output;
     }
 
     @Override
     public boolean contains(T childValue) {
-        // TODO implement contains in MutableRootNode
-        throw new RuntimeException("not implemented yet!");
+        for (IChild child : getChildren())
+        {
+            if (((AbstractTreeNode) child).getObject().equals(childValue))
+                return true;
+        }
+        return  false;
     }
 
     @Override
     public boolean containsDescendants(T childValue) {
-        // TODO implement containsDescendants in MutableRootNode
-        throw new RuntimeException("not implemented yet!");
+        Integer value = null;
+        for (IChild desc : getAllDescendants()) {
+            if (((IWrapper) desc).getObject() == childValue) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -65,16 +88,19 @@ public class MutableRootNode<T>
      * @param childValue - the value of the child to be removed
      * @return - the child removed, or null if the child with the given value was not found.
      */
-    AbstractTreeNode<T> removeChildByValue(T childValue) {
+    public AbstractTreeNode<T> removeChildByValue(T childValue) {
         Iterator<? extends IChild<T>> it = children.iterator();
 
         while (it.hasNext())
         {
             IChild<T> child  = it.next();
-            if (((MutableChildNode<T>) child).getObject().equals(childValue))
+            if (((IWrapper<T>) child).getObject().equals(childValue))
             {
                 children.remove(child);
-                ((MutableChildNode<T>) child).setParent(null);
+                if (child instanceof MutableParentNode)
+                    ((MutableParentNode) child).setParent(null);
+                else
+                    ((MutableChildNode<Object>) child).setParent(null);
                 return (AbstractTreeNode<T>) child;
             }
         }
@@ -84,13 +110,26 @@ public class MutableRootNode<T>
 
     /**
      * Removes this node descendants having the specified value.S
-     *
+     * ОБХОД В ШИРИНУ
      * @param childValue - the value of the descendant of this node that must be removed.
      * @return true if at least one descendant was removed, false - otherwise.
      */
-    boolean removeDescendantsByValue(T childValue) {
+    public boolean removeDescendantsByValue(T childValue) {
         // TODO implement removeDescendantsByValue in MutableRootNode
-        throw new RuntimeException("not implemented yet!");
+        Iterator<? extends IChild<T>> it = getAllDescendants().iterator();
+
+        boolean del = false;
+        while (it.hasNext())
+        {
+            IChild<T> child  = it.next();
+            if (((MutableChildNode<T>) child).getObject().equals(childValue))
+            {
+                getAllDescendants().remove(child);
+                ((MutableChildNode<T>) child).setParent(null);
+                del = true;
+            }
+        }
+        return del;
     }
 
     /**
@@ -107,7 +146,7 @@ public class MutableRootNode<T>
         if (node instanceof  ImmutableChildNode || node instanceof ImmutableParentNode || node instanceof  ImmutableRootNode)
             throw new  IllegalStateException("Cant add immutable to mutable tree");
 
-        Set<IChild<T>> set = new HashSet<>(this.children);
+        Set<IChild<T>> set = new LinkedHashSet<>(this.children);
         if (node instanceof MutableRootNode)
         {
             MutableParentNode parentNode = new MutableParentNode(node.getObject());
@@ -122,7 +161,7 @@ public class MutableRootNode<T>
             else
                 set.add((MutableChildNode) node);
         }
-        children = set;
+        this.setChildren(set);
 
     }
 

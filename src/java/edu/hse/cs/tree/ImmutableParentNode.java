@@ -1,6 +1,8 @@
 package edu.hse.cs.tree;
 
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
 
 public class ImmutableParentNode<T>
@@ -24,6 +26,7 @@ public class ImmutableParentNode<T>
     }
 
 
+
     //Возвращает множество узлов-детей, принадлежащих данному родителю.
     @Override
     public Set<? extends IChild<T>> getChildren() {
@@ -34,15 +37,33 @@ public class ImmutableParentNode<T>
     //  Возвращает коллекцию, состоящую из всех потомков узла, т.е. детей узла, детей детей узла и т.д.
     @Override
     public Collection<? extends IChild<T>> getAllDescendants() {
-        // TODO implement getAllDescendants in ImmutableParentNode
-        throw new RuntimeException("not implemented yet!");
+        Set<IChild<T>> output = new HashSet<>(this.children);
+
+        for (Iterator<? extends IChild<T>> it = this.children.iterator(); it.hasNext(); )
+        {
+            IChild<T> temp = it.next();
+            if (temp instanceof MutableParentNode)
+            {
+                Collection<? extends IChild<T>> collec = ((MutableParentNode<T>) temp).getAllDescendants();
+                output.addAll(collec);
+            }
+            if (temp instanceof MutableChildNode)
+                output.add(temp);
+        }
+        return  output;
     }
 
     //	Возвращает булево значение, сообщающее о наличии ребенка с указанным значением в узле.
     @Override
     public boolean contains(T childValue) {
-        // TODO implement contains in ImmutableParentNode
-        throw new RuntimeException("not implemented yet!");
+        Iterator<? extends IChild<T>> i = children.iterator();
+        while (i.hasNext())
+        {
+            IChild next = i.next();
+            if (((AbstractTreeNode) next).getObject().equals(childValue))
+                return true;
+        }
+        return  false;
     }
 
     //  Возвращает булево значение, сообщающее о наличии потомка с указанным значением, т.е. среди детей узла, детей детей узла и т.д.

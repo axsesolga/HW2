@@ -18,16 +18,9 @@ public class MutableChildNode<T>
     }
 
     public void setParent(IParent<T> newValue) {
-        if (this.parent != null)
-        {
-            IParent par = this.parent;
-            if (par instanceof MutableParentNode)
-                ((MutableParentNode) par).removeChildByValue(this.getObject());
-            else
-                ((MutableRootNode) par).removeChildByValue(this.getObject());
-        }
-
             this.parent = newValue;
+
+
     }
 
     @Override
